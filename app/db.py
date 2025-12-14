@@ -7,6 +7,7 @@ from app.models import Base
 
 
 def create_engine(settings: Settings):
+    # For sqlite we want aiosqlite driver (sqlite+aiosqlite:///./bot.db by default)
     return create_async_engine(settings.database_url, future=True)
 
 
