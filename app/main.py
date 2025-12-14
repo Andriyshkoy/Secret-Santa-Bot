@@ -3,6 +3,10 @@ import logging
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
+try:
+    from aiogram.client.default import DefaultBotProperties
+except ImportError:  # aiogram < 3.7
+    DefaultBotProperties = None
 
 from app.bot.handlers import router
 from app.bot.middlewares import DbSessionMiddleware, SettingsMiddleware
@@ -21,7 +25,11 @@ async def main():
     session_factory = get_session_factory(engine)
     await init_db(engine)
 
-    bot = Bot(token=settings.bot_token, parse_mode="HTML")
+    # aiogram 3.7+ expects default properties instead of parse_mode arg
+    if DefaultBotProperties is not None:
+        bot = Bot(token=settings.bot_token, default=DefaultBotProperties(parse_mode="HTML"))
+    else:  # fallback for older aiogram
+        bot = Bot(token=settings.bot_token, parse_mode="HTML")
     dp = Dispatcher(storage=MemoryStorage())
 
     dp.update.middleware(SettingsMiddleware(settings))
